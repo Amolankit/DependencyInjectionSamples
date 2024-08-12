@@ -1,25 +1,28 @@
+using DependencyInjectionSample;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IGuidSingleton>(new GuidGenerator());
+builder.Services.AddScoped<IGuidScoped, GuidGenerator>();
+builder.Services.AddTransient<IGuidTransient, GuidGenerator>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.MapGet("/instance",
+    (IGuidSingleton idSingleton,
+    IGuidScoped idScoped1,
+    IGuidScoped idScoped2,
+    IGuidTransient idTransient1,
+    IGuidTransient idTransient2) =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    return
+    $"Singleton instance: {idSingleton.Value}\r\n\r\n" +
 
-app.UseHttpsRedirection();
+    $"Scoped instance 1: {idScoped1.Value}\r\n" +
+    $"Scoped instance 2: {idScoped2.Value}\r\n\r\n" +
 
-app.UseAuthorization();
-
-app.MapControllers();
+    $"Transient instance 1: {idTransient1.Value}\r\n" +
+    $"Transient instance 2: {idTransient2.Value}";
+});
 
 app.Run();
